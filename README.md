@@ -5,7 +5,7 @@ A tool that crawls **login-protected documentation sites** and exports everythin
 - 📄 **PDF** — nicely formatted, for human reading
 - 📝 **Markdown** — clean plain text, ideal for feeding into AI tools like Claude
 
-Works by using your browser cookies to authenticate, so you don't need to share passwords.
+Works by using your **existing Chrome login session** — no passwords, no cookie exports, Chrome can stay open.
 
 ---
 
@@ -16,14 +16,14 @@ Works by using your browser cookies to authenticate, so you don't need to share 
 - Skips navigation, sidebars and other noise
 - Generates a clean Markdown file optimised for AI consumption
 - Generates a styled PDF with cover page for human reading
-- Fully reusable — just swap the URL and cookies for any other site
+- Fully reusable — just swap the URL for any other site
 
 ---
 
 ## 🔧 Requirements
 
 - Python 3.8 or higher
-- pip (comes with Python)
+- Google Chrome (already installed and logged in to the documentation site)
 
 ---
 
@@ -39,33 +39,21 @@ cd doc-scraper
 **2. Install dependencies**
 
 ```bash
-pip install requests beautifulsoup4 reportlab lxml
+pip install selenium webdriver-manager beautifulsoup4 reportlab lxml
 ```
-
----
-
-## 🍪 Step 1 — Export your cookies
-
-You need to export your browser cookies so the scraper can access pages that require login.
-
-1. Install the **Cookie-Editor** browser extension:
-   - [Chrome](https://chrome.google.com/webstore/detail/cookie-editor/hlkenndednhfkekhgcdicdfddnkalmdm)
-   - [Firefox](https://addons.mozilla.org/firefox/addon/cookie-editor/)
-
-2. Open your browser and **log in** to the documentation site
-
-3. Click the Cookie-Editor icon in your browser toolbar
-
-4. Click **Export** (the export icon at the bottom)
-
-5. Save the result as a `.json` file, e.g. `cookies.json`
 
 ---
 
 ## 🚀 Usage
 
+### Before you run
+
+Make sure you are logged in to the documentation site in Chrome. The script makes a temporary copy of your Chrome profile (including your session cookies) so it can access pages that require login. Chrome can stay open while the script runs.
+
+### Run the script
+
 ```bash
-python doc_scraper.py --url <start_url> --cookies <cookies.json> --output <output_name> --title "My Documentation"
+python doc_scraper.py --url <start_url> --output <output_name> --title "My Documentation"
 ```
 
 ### Arguments
@@ -73,17 +61,16 @@ python doc_scraper.py --url <start_url> --cookies <cookies.json> --output <outpu
 | Argument | Required | Description |
 |---|---|---|
 | `--url` | ✅ Yes | The starting URL of the documentation page |
-| `--cookies` | ✅ Yes | Path to your Cookie-Editor JSON export |
 | `--output` | No | Output filename without extension (default: `documentatie`) |
-| `--title` | No | Title shown on the PDF cover page (default: `API Documentatie`) |
+| `--title` | No | Title shown on the PDF cover page (default: `Documentatie`) |
 | `--max-pages` | No | Maximum number of pages to crawl (default: `200`) |
+| `--wait` | No | Seconds to wait per page for JS rendering (default: `4`) |
 
 ### Example
 
 ```bash
 python doc_scraper.py \
   --url "https://docs.example.com/api/getting-started" \
-  --cookies cookies.json \
   --output my_docs \
   --title "Example API Documentation"
 ```
@@ -106,40 +93,37 @@ Upload the generated `.md` file to an AI assistant like Claude and ask questions
 doc-scraper/
 ├── doc_scraper.py   # Main script
 ├── README.md        # This file
-└── cookies.json     # Your exported cookies (don't commit this!)
+└── .gitignore
 ```
-
-> ⚠️ **Never commit your `cookies.json` to GitHub.** Add it to `.gitignore`.
 
 ---
 
 ## 🔒 .gitignore
 
-Create a `.gitignore` file to prevent accidentally pushing your cookies:
-
 ```
-cookies.json
-*.json
 output/
 *.pdf
 *.md
 !README.md
+__pycache__/
+*.pyc
 ```
 
 ---
 
 ## ❓ Troubleshooting
 
-**"0 pages found"**
-- Make sure you are logged in before exporting cookies
+**"0 pages found" or "cannot display page"**
+- Make sure you are logged in to the documentation site in Chrome
 - Check that the URL is correct and accessible in your browser
-- Try exporting cookies again — they may have expired
 
-**"HTTP 403 or 401"**
-- Your session has expired. Log in again and re-export cookies.
+**"Chrome profile not found"**
+- Make sure Google Chrome is installed (not Chromium or Edge)
+- On Windows, profiles are stored in `%LOCALAPPDATA%\Google\Chrome\User Data`
 
 **PDF looks wrong / missing content**
-- Some sites use JavaScript to render content. This tool works best with server-rendered HTML documentation (Confluence, Notion export, wiki-style sites).
+- Try increasing the wait time: `--wait 8`
+- Some sites load content slowly
 
 ---
 
