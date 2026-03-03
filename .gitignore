@@ -1,0 +1,6 @@
+cookies.json
+*.json
+output/
+*.pdf
+*.md
+!README.md
